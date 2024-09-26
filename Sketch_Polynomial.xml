@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 966570  -->
+  <question type="stack">
+    <name>
+      <text>Sketch Polynomial (degree slider) [savestate]</text>
+    </name>
+    <questiontext format="moodle_auto_format">
+      <text><![CDATA[<p>We are looking for a polynomial with zeros {@a@} and {@b@}.</p>
+<p>First select its the degree with the slider.</p>
+<p>Then sketch the graph of the polynomial.</p>
+<p>You can finetune your graph by moving the red points.</p>
+[[jsxgraph]]
+const board = JXG.JSXGraph.initBoard(divid, {
+    boundingbox: [-10, 10, 10, -10],
+    axis: true,
+showCopyright: false
+});
+
+// Draw function graph
+var old_f = document.getElementById('findme').getElementsByTagName('input')[0].value;
+if (old_f) {
+    var f = board.jc.snippet(old_f, true, 'x', true);
+    old_graph = board.create('functiongraph', [f,-10, 10], {strokeColor: '#000000',
+                strokeWidth: 3,
+                lineCap: 'round',
+                fixed: true,
+                highlight:false
+    });
+}
+
+// slider for degree selection
+var degree = board.create('slider', [
+    [-8, 8],
+    [-2, 8],
+    [2, 2, 6]
+], {snapWidth: 1} );
+
+// Define new board mode "sketch"
+board.BOARD_MODE_SKETCH = 0x0003;
+
+// Global variables
+var sketch, graph, f,txt, degree, points = [];
+
+// Init sketch curve
+board.on('down', function(evt) {
+    if (board.mode !== board.BOARD_MODE_NONE) {
+        return;
+    }
+    board.mode = board.BOARD_MODE_SKETCH;
+    sketch = board.create('curve', [[], []], {
+        strokeColor: '#bbbbbb',
+        lineCap: 'round',
+        strokeWidth: 10
+    });
+});
+
+// Finalize the sketch curve:
+// Take sketch and create spline curve
+board.on('up', function(evt) {
+    var coords = [], i, p;
+
+    if (board.mode !== board.BOARD_MODE_SKETCH) {
+        return;
+    }
+
+    // Remove previous curve if it exists
+    if (JXG.exists(graph)) {
+        board.removeObject(graph);
+        board.removeObject(points)
+    }
+
+    board.mode = board.BOARD_MODE_NONE;
+
+    // Get list of coordinates from sketch curve
+    for (i = 0; i < sketch.dataX.length; i++) {
+        coords.push(new JXG.Coords(JXG.COORDS_BY_USER, [sketch.dataX[i], sketch.dataY[i]], board));
+    }
+
+    // Reduce the number of coordinate points to d+1 internal coordinate points
+    coords = JXG.Math.Numerics.Visvalingam(coords, degree.Value()-1 );
+
+    board.removeObject(points);
+
+    // Convert the output of Visvalingam to JSXGraph points
+    points = [];
+    for (i = 0; i < coords.length; i++) {
+        var p=board.create('point', [coords[i].usrCoords[1], coords[i].usrCoords[2]],{withLabel: false});
+        p.on('drag', function(){ 
+                document.getElementById('findme').getElementsByTagName('input')[0].value=f.getTerm(2, 'x', ' * '); 
+        });
+        points.push(p);
+    }
+
+f = JXG.Math.Numerics.lagrangePolynomial(points);
+graph = board.create('functiongraph', [f,-10, 10], {strokeColor: '#000000',
+            strokeWidth: 3,
+            lineCap: 'round',
+            fixed: true,
+            highlight:false
+});
+
+//txt = board.create('text', [1, 7,  () => f.getTerm(2, 'x', ' * ')], {fontSize: 16});
+document.getElementById('findme').getElementsByTagName('input')[0].value=f.getTerm(2, 'x', ' * '); 
+
+    // Remove the sketch curve 
+    board.removeObject(sketch);
+
+
+});
+
+// Collect data points for the sketch curve
+board.on('move', function(evt, mode) {
+    var pos, c;
+
+    if (mode !== board.BOARD_MODE_SKETCH) {
+        return;
+    }
+
+    pos = board.getMousePosition(evt);
+    c = new JXG.Coords(JXG.COORDS_BY_SCREEN, pos, board);
+    sketch.dataX.push(c.usrCoords[1]);
+    sketch.dataY.push(c.usrCoords[2]);
+    board.update();
+});
+[[/jsxgraph]]
+
+<p id="findme">[[input:ans1]] [[validation:ans1]]</p>]]></text>
+    </questiontext>
+    <generalfeedback format="moodle_auto_format">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.1</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <stackversion>
+      <text>2023010400</text>
+    </stackversion>
+    <questionvariables>
+      <text>/* created by Michael Kallweit */
+/* based on http://jsxgraph.org/share/example/sketch-curve */
+/* This code is licensed under the AGPLv3 License */
+/* You may obtain a copy of the license at https://www.gnu.org/licenses/agpl-3.0.html */
+
+
+a:rand_with_step(-5,5,1);
+b:rand_with_prohib(-5,5,[a]);
+
+lsg:expand( (x-a)*(x-b) );</text>
+    </questionvariables>
+    <specificfeedback format="html">
+      <text>[[feedback:prt1]]</text>
+    </specificfeedback>
+    <questionnote>
+      <text>{@a@},{@b@}</text>
+    </questionnote>
+    <questionsimplify>1</questionsimplify>
+    <assumepositive>0</assumepositive>
+    <assumereal>0</assumereal>
+    <prtcorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:green;"><i class="fa fa-check"></i></span> Richtige Antwort, gut gemacht!]]></text>
+    </prtcorrect>
+    <prtpartiallycorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:orange;"><i class="fa fa-adjust"></i> Ihre Antwort ist teilweise korrekt.]]></text>
+    </prtpartiallycorrect>
+    <prtincorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:red;"><i class="fa fa-times"></i></span> Falsche Antwort.]]></text>
+    </prtincorrect>
+    <multiplicationsign>dot</multiplicationsign>
+    <sqrtsign>1</sqrtsign>
+    <complexno>i</complexno>
+    <inversetrig>cos-1</inversetrig>
+    <logicsymbol>lang</logicsymbol>
+    <matrixparens>(</matrixparens>
+    <variantsselectionseed></variantsselectionseed>
+    <input>
+      <name>ans1</name>
+      <type>algebraic</type>
+      <tans>lsg</tans>
+      <boxsize>37</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>0</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>0</mustverify>
+      <showvalidation>0</showvalidation>
+      <options></options>
+    </input>
+    <prt>
+      <name>prt1</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text>fa:subst(a,x,ans1);
+fb:subst(b,x,ans1);</text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans1</sans>
+        <tans>lsg</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>1</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>You have matched the polynomial exactly.</p>]]></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>1</falsenextnode>
+        <falseanswernote>prt1-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>1</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>fa</sans>
+        <tans>0</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.5</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>3</truenextnode>
+        <trueanswernote>prt1-2-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Your Polynomial has a zero in {@a@}.</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>2</falsenextnode>
+        <falseanswernote>prt1-2-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>2</name>
+        <answertest>NumAbsolute</answertest>
+        <sans>fa</sans>
+        <tans>0</tans>
+        <testoptions>0.5</testoptions>
+        <quiet>0</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.25</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>3</truenextnode>
+        <trueanswernote>prt1-3-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Your Polynomial has almost a zero in {@a@}, because \( f({@a@})={@fa@} \)</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>3</falsenextnode>
+        <falseanswernote>prt1-3-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>Your Polynomial does not have a zero in {@a@}, because \( f({@a@})={@fa@} \)</p>]]></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>3</name>
+        <answertest>AlgEquiv</answertest>
+        <sans>fb</sans>
+        <tans>0</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.5</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-4-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Your Polynomial has a zero in {@b@}.</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>4</falsenextnode>
+        <falseanswernote>prt1-4-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>4</name>
+        <answertest>NumAbsolute</answertest>
+        <sans>fb</sans>
+        <tans>0</tans>
+        <testoptions>0.5</testoptions>
+        <quiet>0</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0.25</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-5-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Your Polynomial has almost a zero in {@b@}, because \( f({@b@})={@fb@} \)</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt1-5-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>Your Polynomial does not have a zero in {@b@}, because \( f({@b@})={@fb@} \)</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+  </question>
+
+</quiz>
